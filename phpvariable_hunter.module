@@ -2,7 +2,7 @@
 //
 // Author and disclaimer information must remain in this freely distributable source file.
 // 
-// PHP Variable Hunter - Find buried PHP variables.
+// PHP Variable Hunter - Find buried PHP variables. For Drupal.
 // Copyright (c) 2013, Jimmy Olsen, idxSoft  http://www.idxsoft.com
 // 
 // Finds variables in complex variable arrays and returns the location.
