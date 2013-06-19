@@ -1,0 +1,5 @@
+; $Id$
+name = PHP Variable Hunter
+description = Quickly find variables in a complex array.
+core = 7.x
+package = Development
