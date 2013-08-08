@@ -1,4 +1,3 @@
-; $Id$
 name = PHP Variable Hunter
 description =  Quick way to find variables in complex PHP arrays.
 core = 7.x
