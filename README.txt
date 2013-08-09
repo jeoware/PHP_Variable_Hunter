@@ -21,6 +21,9 @@ Foundation version 2
 This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+Third party use requires attribution to author and website.
+Jimmy Olsen - http://www.idxsoft.com
  
 If this module saves you time, please consider contributing at 
 http://www.idxsoft.com/contribute.
