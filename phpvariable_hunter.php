@@ -11,6 +11,9 @@
  */
 
 /**
+ * * Any 3rd party distribution requires credit to the author & web address.
+ * Jimmy Olsen - http://www.idxsoft.com
+ * 
  *  Author and disclaimer information must remain 
  * in this freely distributable source file.
  *  PHP Variable Hunter - Find buried PHP variables. 
