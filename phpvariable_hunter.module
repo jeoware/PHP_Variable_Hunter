@@ -9,7 +9,6 @@
  * @defgroup phpvariable_hunter PHP Variable Hunter
  * @ingroup phpvariable_hunter
  */
-
 /**
  *
  * Author and disclaimer information must remain 
@@ -23,12 +22,11 @@
  * at http://www.idxsoft.com/contribute
  * 
  * Find variables in complex variable arrays and returns the location.
- * Syntax: Searching for 'Footer' in $form variable.
- * $result = phpvariable_hunter($form, 'Footer', TRUE); // or use pvh();
+ * Syntax: Searching for 'footer' in $form variable.
+ * $result = phpvariable_hunter($form, 'footer', TRUE); // or use pvh();
  * 
- * Matches printed as 
- * ['admin']['nodes']['#options']['37']['title']['data']['#title'] 
- * value ==> This is the Footer
+ * Results printed on screen as follows:
+ * $form['admin']['nodes']['#options']['37']['title']['data'] == admin/footer
  * 
  * Also returns the results in a variable array for debugging.
  * The search is limited to 15 tree levels to ensure proper performance.
@@ -48,7 +46,6 @@ $callerinfo = '';
  * Function  pvh - Shorthand for phpvariable_hunter.
  */
 function pvh($array, $needle, $exact_match = FALSE) {
-  phpvariable_hunter_getcaller(1);
   $ret = phpvariable_hunter($array, $needle, $exact_match);
   return $ret;
 }
@@ -72,7 +69,7 @@ function phpvariable_hunter_getcaller($depth) {
       if ($pos1 > 0) {
         $ret = trim(substr($expr, $pos + 1, $pos1 - $pos - 1));
         $ret = substr($ret, 1, strlen($ret) - 1);
-        $GLOBALS['phpvariable_hunter_caller'] = $ret;
+        return $ret;
       }
     }
   }
@@ -82,19 +79,22 @@ function phpvariable_hunter_getcaller($depth) {
  * Function phpvariable_hunter - performs a nested variable lookup.
  */
 function phpvariable_hunter($array, $needle, $exact_match = FALSE) {
-  if (!isset($GLOBALS['phpvariable_hunter_caller'])) {
-    phpvariable_hunter_getcaller(1);
+  $hunter_varname = phpvariable_hunter_getcaller(1);
+  if ($hunter_varname = 'array') {
+    $hunter_varname = phpvariable_hunter_getcaller(2);
   }
-  $GLOBALS['phpvariable_hunter_stack'] = array();
-  $GLOBALS['phpvariable_hunter_types'] = array();
-  $GLOBALS['phpvariable_hunter_results'] = array();
-  $ret = phpvariable_hunter_internalcall($array, $needle, $exact_match);
-  unset($GLOBALS['phpvariable_hunter_stack']);
-  unset($GLOBALS['phpvariable_hunter_types']);
+
+  $hunter_stack = array();
+  $hunter_types = array();
+  $hunter_results = array();
+  $ret = phpvariable_hunter_internalcall($array, $needle, $exact_match, $hunter_varname, $hunter_stack, $hunter_results, $hunter_types);
+  unset($hunter_stack);
+  unset($hunter_types);
   // Now return the results...... both to variable and screen.
-  $ret = $GLOBALS['phpvariable_hunter_results'];
-  unset($GLOBALS['phpvariable_hunter_results']);
+  $ret = $hunter_results;
   // A header to find what we searched for.
+  // MUST use PRINT() for theme compatiblity. OMEGA does not like Krumo.
+  // This is open to @todo
   print ('</br></br></br>');
   print (t('PHP Variable Hunter results for needle = ') . $needle . '</br></br>');
   if (count($ret) == 0) {
@@ -115,7 +115,7 @@ function phpvariable_hunter($array, $needle, $exact_match = FALSE) {
 /**
  * Nested procedure - it calls itself untill the depth of the variable tree.
  */
-function phpvariable_hunter_internalcall($array, $needle, $exact_match) {
+function phpvariable_hunter_internalcall($array, $needle, $exact_match, $hunter_varname, &$hunter_stack, &$hunter_results, &$hunter_types) {
   try {
     $ret = array();
     if ((is_array($array)) || (is_object($array))) {
@@ -149,18 +149,18 @@ function phpvariable_hunter_internalcall($array, $needle, $exact_match) {
           }
           if ($ok) {
             // Quick check if overflow.
-            foreach ($GLOBALS['phpvariable_hunter_types'] as $var) {
+            foreach ($hunter_types as $var) {
               if ($var == 'overflow') {
                 $ok = FALSE;
               }
             }
           }
           if ($ok) {
-            $answer = '$' . $GLOBALS['phpvariable_hunter_caller'];
+            $answer = '$' . $hunter_varname;
             $wasobject = FALSE;
-            foreach ($GLOBALS['phpvariable_hunter_stack'] as $key_stack => $var) {
+            foreach ($hunter_stack as $key_stack => $var) {
               // Have to determine if the prior entry was a class.
-              if ($GLOBALS['phpvariable_hunter_types'][$key_stack + 1] == 'object') {
+              if ($hunter_types[$key_stack + 1] == 'object') {
                 $answer .= '[\'' . $var . '\']->';
                 $wasobject = TRUE;
               }
@@ -182,22 +182,22 @@ function phpvariable_hunter_internalcall($array, $needle, $exact_match) {
               $answer .= '[\'' . $key . '\']';
             }
             if ($answer != '') {
-              $GLOBALS['phpvariable_hunter_results'][] = $answer . ';  ==  ' . $val;
+              $hunter_results[] = $answer . ';  ==  ' . $val;
             }
           }
         }
         else {
-          if (count($GLOBALS['phpvariable_hunter_stack']) < 15) {
+          if (count($hunter_stack) < 15) {
             // Save the key before tracing down.
-            $GLOBALS['phpvariable_hunter_stack'][count($GLOBALS['phpvariable_hunter_stack'])] = $key;
-            $GLOBALS['phpvariable_hunter_types'][count($GLOBALS['phpvariable_hunter_stack'])] = gettype($val);
-            phpvariable_hunter_internalcall($val, $needle, $exact_match);
-            unset($GLOBALS['phpvariable_hunter_stack'][count($GLOBALS['phpvariable_hunter_stack']) - 1]);
-            unset($GLOBALS['phpvariable_hunter_types'][count($GLOBALS['phpvariable_hunter_stack']) - 1]);
+            $hunter_stack[count($hunter_stack)] = $key;
+            $hunter_types[count($hunter_stack)] = gettype($val);
+            phpvariable_hunter_internalcall($val, $needle, $exact_match, $hunter_varname, $hunter_stack, $hunter_results, $hunter_types);
+            unset($hunter_stack[count($hunter_stack) - 1]);
+            unset($hunter_types[count($hunter_stack) - 1]);
           }
           else {
             // Depth greater than search limitation, continue with the loop.
-            $GLOBALS['phpvariable_hunter_types'][count($GLOBALS['phpvariable_hunter_stack'])] = 'overflow';
+            $hunter_types[count($hunter_stack)] = 'overflow';
             continue;
           }
         }
@@ -206,7 +206,7 @@ function phpvariable_hunter_internalcall($array, $needle, $exact_match) {
     }
   }
   catch (Exception $e) {
-    unset($GLOBALS['phpvariable_hunter_stack'][count($GLOBALS['phpvariable_hunter_stack']) - 1]);
-    unset($GLOBALS['phpvariable_hunter_types'][count($GLOBALS['phpvariable_hunter_stack']) - 1]);
+    unset($hunter_stack[count($hunter_stack) - 1]);
+    unset($hunter_types[count($hunter_stack) - 1]);
   }
 }

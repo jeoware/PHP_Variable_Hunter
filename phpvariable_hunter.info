@@ -1,4 +1,4 @@
 name = PHP Variable Hunter
-description =  Quick way to find variables in complex PHP arrays.
+description =  Precise search for variables in complex PHP arrays.
 core = 7.x
 package = Development
