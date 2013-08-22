@@ -9,6 +9,7 @@
  * @defgroup phpvariable_hunter PHP Variable Hunter
  * @ingroup phpvariable_hunter
  */
+
 /**
  *
  * Author and disclaimer information must remain 
@@ -160,7 +161,7 @@ function phpvariable_hunter_internalcall($array, $needle, $exact_match, $hunter_
             $wasobject = FALSE;
             foreach ($hunter_stack as $key_stack => $var) {
               // Have to determine if the prior entry was a class.
-              if ($hunter_types[$key_stack + 1] == 'object') {
+              if (isset($hunter_types[$key_stack + 1]) && $hunter_types[$key_stack + 1] == 'object') {
                 $answer .= '[\'' . $var . '\']->';
                 $wasobject = TRUE;
               }
