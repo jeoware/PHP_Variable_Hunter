@@ -17,6 +17,17 @@ $form['admin']['nodes']['#options']['37']['title']->data; == admin/footer
 
 Also returns results in a variable array so debugger can stay in session.
 The search is limited to 15 tree levels to ensure proper performance.
- 
+
 If this module saves you time and effort, please contribute at
 http://www.idxsoft.com/contribute
+
+
+This program is free software; you can redistribute it and/or modify it 
+under the terms of the GNU General Public
+License as published by the Free Software Foundation version 2
+This program is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY;  
+without even the implied warranty of MERCHANTABILITY or 
+FITNESS FOR A PARTICULAR PURPOSE.  
+See the GNU General Public License for more details.
+
