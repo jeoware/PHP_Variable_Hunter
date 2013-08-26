@@ -1,37 +1,32 @@
 <?php
 
 /**
- * @file
- * Main file for phpvariable_hunter
- *
- * This module easily finds a variable in a complex tree structure.
- *
- * @defgroup phpvariable_hunter PHP Variable Hunter
- * @ingroup phpvariable_hunter
- */
-
-/**
  *
  * Author and disclaimer information must remain 
  * in this freely distributable source file.
  * 
- *  PHP Variable Hunter - Find buried PHP variables. 
- * For Drupal and any PHP developer.
+ * PHP Variable Hunter - Find buried PHP variables. 
  * Copyright (c) 2013, Jimmy Olsen, idxSoft  http://www.idxsoft.com.
+ * v0.83 - 8/27/2013
+ * Lastest version and Drupal (.module) available at
+ * http://www.idxsoft.com/phpvariablehunter
  * 
- * If this module saves you time or effort, please consider contributing 
- * at http://www.idxsoft.com/contribute
+ * Finds variables in complex variable arrays and returns the references.
  * 
- * Find variables in complex variable arrays and returns the location.
- * Syntax: Searching for 'footer' in $form variable.
- * $result = phpvariable_hunter($form, 'footer', TRUE); // or use pvh();
+ * Syntax: $array_references = pvh($input_array, 'needle', EXACT_MATCH);
+ *
+ * For example, $results = pvh($form, 'footer');
+ * Searches through the array $form for case-insensitive text: 'footer'.
  * 
- * Results printed on screen as follows:
- * $form['admin']['nodes']['#options']['37']['title']['data'] == admin/footer
+ * Matches are printed to the screen in PHP variable format as follows:
+ * $form['admin']['nodes']['#options']['37']['title']->data; == admin/footer
  * 
- * Also returns the results in a variable array for debugging.
+ * Also returns results in a variable array so debugger can stay in session.
  * The search is limited to 15 tree levels to ensure proper performance.
- * 
+ *  
+ * If this module saves you time and effort, please contribute to the project at
+ * http://www.idxsoft.com/contribute
+  
  * This program is free software; you can redistribute it and/or modify it 
  * under the terms of the GNU General Public
  *  License as published by the Free Software Foundation version 2
@@ -40,8 +35,8 @@
  * without even the implied warranty of MERCHANTABILITY or 
  * FITNESS FOR A PARTICULAR PURPOSE.  
  * See the GNU General Public License for more details.
+ *
  */
-$callerinfo = '';
 
 /**
  * Function  pvh - Shorthand for phpvariable_hunter.
@@ -52,31 +47,6 @@ function pvh($array, $needle, $exact_match = FALSE) {
 }
 
 /**
- * Retrieve the called procedure variable from the stack.
- */
-function phpvariable_hunter_getcaller($depth) {
-  $trace = debug_backtrace();
-  $ret = '';
-  if (isset($trace[$depth]['file'])) {
-    $lines = file($trace[$depth]['file']);
-    $line = $lines[$trace[$depth]['line'] - 1];
-    $expr = $line;
-    $expr = preg_replace('/\s*dump\(/i', '', $expr);
-    $expr = preg_replace('/\);\s*/', '', $expr);
-    // Parse this down to the first parameter.
-    $pos = strpos($expr, '(');
-    if ($pos > 0) {
-      $pos1 = strpos($expr, ',', $pos + 1);
-      if ($pos1 > 0) {
-        $ret = trim(substr($expr, $pos + 1, $pos1 - $pos - 1));
-        $ret = substr($ret, 1, strlen($ret) - 1);
-        return $ret;
-      }
-    }
-  }
-}
-
-/**
  * Function phpvariable_hunter - performs a nested variable lookup.
  */
 function phpvariable_hunter($array, $needle, $exact_match = FALSE) {
@@ -84,7 +54,6 @@ function phpvariable_hunter($array, $needle, $exact_match = FALSE) {
   if ($hunter_varname = 'array') {
     $hunter_varname = phpvariable_hunter_getcaller(2);
   }
-
   $hunter_stack = array();
   $hunter_types = array();
   $hunter_results = array();
@@ -114,7 +83,7 @@ function phpvariable_hunter($array, $needle, $exact_match = FALSE) {
 }
 
 /**
- * Nested procedure - it calls itself untill the depth of the variable tree.
+ * Nested procedure - it calls itself up until the depth of the variable tree.
  */
 function phpvariable_hunter_internalcall($array, $needle, $exact_match, $hunter_varname, &$hunter_stack, &$hunter_results, &$hunter_types) {
   try {
@@ -209,5 +178,29 @@ function phpvariable_hunter_internalcall($array, $needle, $exact_match, $hunter_
   catch (Exception $e) {
     unset($hunter_stack[count($hunter_stack) - 1]);
     unset($hunter_types[count($hunter_stack) - 1]);
+  }
+}
+/**
+ * Retrieve the called procedure variable from the stack.
+ */
+function phpvariable_hunter_getcaller($depth) {
+  $trace = debug_backtrace();
+  $ret = '';
+  if (isset($trace[$depth]['file'])) {
+    $lines = file($trace[$depth]['file']);
+    $line = $lines[$trace[$depth]['line'] - 1];
+    $expr = $line;
+    $expr = preg_replace('/\s*dump\(/i', '', $expr);
+    $expr = preg_replace('/\);\s*/', '', $expr);
+    // Parse this down to the first parameter.
+    $pos = strpos($expr, '(');
+    if ($pos > 0) {
+      $pos1 = strpos($expr, ',', $pos + 1);
+      if ($pos1 > 0) {
+        $ret = trim(substr($expr, $pos + 1, $pos1 - $pos - 1));
+        $ret = substr($ret, 1, strlen($ret) - 1);
+        return $ret;
+      }
+    }
   }
 }
