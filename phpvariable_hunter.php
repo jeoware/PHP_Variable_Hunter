@@ -38,9 +38,9 @@
  *
  */
 
-/**
- * Function  pvh - Shorthand for phpvariable_hunter.
- */
+ /**
+  * Function  pvh - Shorthand for phpvariable_hunter.
+  */
 function pvh($array, $needle, $exact_match = FALSE) {
   $ret = phpvariable_hunter($array, $needle, $exact_match);
   return $ret;
@@ -83,7 +83,7 @@ function phpvariable_hunter($array, $needle, $exact_match = FALSE) {
 }
 
 /**
- * Nested procedure - it calls itself up until the depth of the variable tree.
+ * Nested procedure - it calls itself untill the depth of the variable tree.
  */
 function phpvariable_hunter_internalcall($array, $needle, $exact_match, $hunter_varname, &$hunter_stack, &$hunter_results, &$hunter_types) {
   try {
@@ -118,19 +118,11 @@ function phpvariable_hunter_internalcall($array, $needle, $exact_match, $hunter_
             }
           }
           if ($ok) {
-            // Quick check if overflow.
-            foreach ($hunter_types as $var) {
-              if ($var == 'overflow') {
-                $ok = FALSE;
-              }
-            }
-          }
-          if ($ok) {
             $answer = '$' . $hunter_varname;
             $wasobject = FALSE;
             foreach ($hunter_stack as $key_stack => $var) {
               // Have to determine if the prior entry was a class.
-              if (isset($hunter_types[$key_stack + 1]) && $hunter_types[$key_stack + 1] == 'object') {
+              if (isset($hunter_types[$key_stack]) && $hunter_types[$key_stack] == 'object') {
                 $answer .= '[\'' . $var . '\']->';
                 $wasobject = TRUE;
               }
@@ -159,16 +151,15 @@ function phpvariable_hunter_internalcall($array, $needle, $exact_match, $hunter_
         else {
           if (count($hunter_stack) < 15) {
             // Save the key before tracing down.
-            $hunter_stack[count($hunter_stack)] = $key;
-            $hunter_types[count($hunter_stack)] = gettype($val);
+            $hunter_types[count($hunter_stack)+1] = gettype($val);
+            $hunter_stack[count($hunter_stack)+1] = $key;
             phpvariable_hunter_internalcall($val, $needle, $exact_match, $hunter_varname, $hunter_stack, $hunter_results, $hunter_types);
-            unset($hunter_stack[count($hunter_stack) - 1]);
-            unset($hunter_types[count($hunter_stack) - 1]);
+            unset($hunter_types[count($hunter_stack)]);
+            unset($hunter_stack[count($hunter_stack)]);
           }
           else {
             // Depth greater than search limitation, continue with the loop.
-            $hunter_types[count($hunter_stack)] = 'overflow';
-            continue;
+                continue;
           }
         }
       }
@@ -176,8 +167,8 @@ function phpvariable_hunter_internalcall($array, $needle, $exact_match, $hunter_
     }
   }
   catch (Exception $e) {
-    unset($hunter_stack[count($hunter_stack) - 1]);
     unset($hunter_types[count($hunter_stack) - 1]);
+    unset($hunter_stack[count($hunter_stack) - 1]);
   }
 }
 /**
